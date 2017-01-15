@@ -1,5 +1,7 @@
 #ECardFlow
 
+[![](https://jitpack.io/v/codeestX/ECardFlow.svg)](https://jitpack.io/#codeestX/ECardFlow)
+
 ECardFlow, A custom ViewPager for multiple card flow system.designed by [Leo Leung](https://ios.uplabs.com/posts/multiple-card-flow
 )  
 ECardFlow, 一个用于复数卡片滑动与展开效果的ViewPager控件，设计原型出自[Leo Leung](https://ios.uplabs.com/posts/multiple-card-flow
@@ -22,7 +24,7 @@ Step 1. Add the JitPack repository to your build file
 Step 2. Add the dependency
 
 	dependencies {
-	        compile 'com.github.codeestX:ECardFlow:v1.0.0'
+	        compile 'com.github.codeestX:ECardFlow:v1.0.1'
 	}
 	
 Step 3. Just use it as a ViewPager
@@ -33,7 +35,7 @@ Step 3. Just use it as a ViewPager
 	        android:layout_height="match_parent"
 	        app:expandMode="slide_up"
 	        app:expandTime="700"
-	        app:switchSpeed="6"
+	        app:switchTime="1200"
 	        app:preloadPageNum="3"
 	        app:maxRotateY="5">
 
@@ -44,8 +46,8 @@ Step 3. Just use it as a ViewPager
 Attrs:
 
 	<declare-styleable name="attr">
-        <!-- Page switching speed, more big,more slowly, default 6 -->
-        <attr name="switchSpeed" format="integer" />
+        <!-- Page switch time, default 1200ms -->
+        <attr name="switchTime" format="integer" />
 
         <!-- Page expand time, default 700ms -->
         <attr name="expandTime" format="integer" />
@@ -75,8 +77,6 @@ Java Code:
 	mEcardflow.expand();
 	
 	mEcardflow.shrink();
-	
-	mEcardflow.setSwitchSpeed(rate);
 	
 	mEcardflow.setTouchSlop(slop);
 	
