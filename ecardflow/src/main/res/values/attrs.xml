@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="attr">
+        <!-- Page switching speed, more big,more slowly, default 6 -->
+        <attr name="switchSpeed" format="integer" />
+
+        <!-- Page expand time, default 700ms -->
+        <attr name="expandTime" format="integer" />
+
+        <!-- Page expand mode, click or slide up to expand, default slide_up -->
+        <attr name="expandMode">
+            <enum name="slide_up" value="10" />
+            <enum name="click" value="11" />
+        </attr>
+
+        <!-- The number of pages outside the screen, default 3 -->
+        <attr name="preloadPageNum" format="integer" />
+
+        <!-- The shortest sliding distance to trigger the switch, default context.getScaledTouchSlop() -->
+        <attr name="touchSlop" format="integer" />
+
+        <!-- The maximum angle of rotation, default 5 -->
+        <attr name="maxRotateY" format="integer" />
+    </declare-styleable>
+</resources>
