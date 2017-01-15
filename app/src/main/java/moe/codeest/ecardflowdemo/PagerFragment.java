@@ -10,7 +10,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,7 +23,6 @@ import jp.wasabeef.recyclerview.animators.FadeInUpAnimator;
 public class PagerFragment extends Fragment{
 
     private ImageView ivBack;
-    private FrameLayout llContainer;
     private RecyclerView rvContent;
     private TextView tvBtn;
 
@@ -42,7 +40,6 @@ public class PagerFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View mView = inflater.inflate(R.layout.fragment_pager, null);
         ivBack = (ImageView) mView.findViewById(R.id.iv_back);
-        llContainer = (FrameLayout) mView.findViewById(R.id.ll_container);
         rvContent = (RecyclerView) mView.findViewById(R.id.rv_content);
         tvBtn = (TextView) mView.findViewById(R.id.tv_btn);
         return mView;
@@ -120,11 +117,11 @@ public class PagerFragment extends Fragment{
     }
 
     private void pageExpandAnim() {
-        llContainer.animate().scaleX(0.9f).setDuration(700).start();
+        rvContent.animate().scaleX(0.9f).setDuration(700).start();
     }
 
     private void pageShrinkAnim() {
-        llContainer.animate().scaleX(1).setDuration(700).start();
+        rvContent.animate().scaleX(1).setDuration(700).start();
     }
 
     public interface OnPageListener {

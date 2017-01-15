@@ -60,19 +60,11 @@
             />
     </RelativeLayout>
 
-    <FrameLayout
-        android:id="@+id/ll_container"
-        android:orientation="vertical"
-        android:background="@android:color/transparent"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_content"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:scrollbars="none">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv_content"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none">
-
-        </android.support.v7.widget.RecyclerView>
-    </FrameLayout>
+    </android.support.v7.widget.RecyclerView>
 </LinearLayout>
