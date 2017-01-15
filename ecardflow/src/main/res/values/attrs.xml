@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="attr">
-        <!-- Page switching speed, more big,more slowly, default 6 -->
-        <attr name="switchSpeed" format="integer" />
+        <!-- Page switch time, default 1200ms -->
+        <attr name="switchTime" format="integer" />
 
         <!-- Page expand time, default 700ms -->
         <attr name="expandTime" format="integer" />

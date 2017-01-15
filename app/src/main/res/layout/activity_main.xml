@@ -23,7 +23,7 @@
         android:layout_height="match_parent"
         app:expandMode="slide_up"
         app:expandTime="700"
-        app:switchSpeed="6"
+        app:switchTime="1200"
         app:preloadPageNum="3"
         app:maxRotateY="5">
 

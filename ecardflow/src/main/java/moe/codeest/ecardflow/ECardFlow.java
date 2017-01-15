@@ -31,25 +31,26 @@ public class ECardFlow extends ViewPager {
     public static final int SLIDE_UP_TO_EXPAND = 10;
     public static final int CLICK_TO_EXPAND = 11;
 
+    private static final int DEFAULT_BASE_SWITCH_TIME = 200;
     private static final int DEFAULT_EXPAND_TIME = 700;
     private static final int DEFAULT_EXPAND_MODE = SLIDE_UP_TO_EXPAND;
-    private static final int DEFAULT_SWITCH_SPEED = 6;
+    private static final int DEFAULT_SWITCH_TIME = DEFAULT_BASE_SWITCH_TIME * 6;
     private static final int DEFAULT_PRELOAD_PAGE_NUM = 3;
 
     private float mLastX, mLastY, mInterLastX, mInterLastY;
+    private float mPageScaleX, mPageScaleY, mScaleX, mScaleY, mScrollY;
     private float mRate;
     private boolean hasReset = true;
     private boolean isExpanding = false;
+    private boolean isSwitching = false;
 
     //Custom Attrs
     private int mSlop;
     private int mExpandTime;
     private int mExpandMode;
-    private int mScrollFactor;
+    private int mSwitchTime;
     private int mPreloadPageNum;
     private int mMaxRotateY;
-
-    private float mPageScaleX, mPageScaleY, mScaleX, mScaleY, mScrollY;
 
     public ECardFlow(Context context) {
         super(context);
@@ -59,7 +60,7 @@ public class ECardFlow extends ViewPager {
         super(context, attrs);
 
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.attr);
-        mScrollFactor = ta.getInt(R.styleable.attr_switchSpeed, DEFAULT_SWITCH_SPEED);
+        mSwitchTime = ta.getInt(R.styleable.attr_switchTime, DEFAULT_SWITCH_TIME);
         mExpandMode = ta.getInt(R.styleable.attr_expandMode, DEFAULT_EXPAND_MODE);
         mExpandTime = ta.getInteger(R.styleable.attr_expandTime, DEFAULT_EXPAND_TIME);
         mPreloadPageNum = ta.getInteger(R.styleable.attr_preloadPageNum, DEFAULT_PRELOAD_PAGE_NUM);
@@ -70,7 +71,7 @@ public class ECardFlow extends ViewPager {
         mTransformer = new CardFlowTransformer();
         mTransformer.setMaxRotateY(mMaxRotateY);
         setPageTransformer(true, mTransformer);
-        initSwitchSpeed(mScrollFactor);
+        initSwitchSpeed(mSwitchTime * 1.00f / DEFAULT_BASE_SWITCH_TIME);
         initExpandRate();
         mSlop = ViewConfiguration.get(this.getContext()).getScaledTouchSlop();
         addOnPageChangeListener(new OnDirectionListener());
@@ -110,7 +111,7 @@ public class ECardFlow extends ViewPager {
                         } else {
                             gotoNext();
                         }
-                    } else if(mExpandMode == SLIDE_UP_TO_EXPAND && mLastY - mCurY > mSlop && hasReset) {
+                    } else if(mExpandMode == SLIDE_UP_TO_EXPAND && mLastY - mCurY > mSlop && hasReset && !isSwitching) {
                         hasReset = false;
                         expand();
                     }
@@ -118,7 +119,7 @@ public class ECardFlow extends ViewPager {
                 case MotionEvent.ACTION_UP:
                     int mUpX = (int) event.getRawX();
                     int mUpY = (int) event.getRawY();
-                    if (mExpandMode == CLICK_TO_EXPAND && Math.abs(mUpX - mInterLastX) <= mSlop && Math.abs(mUpY - mInterLastY) <= mSlop) {
+                    if (mExpandMode == CLICK_TO_EXPAND && Math.abs(mUpX - mInterLastX) <= mSlop && Math.abs(mUpY - mInterLastY) <= mSlop && !isSwitching) {
                         expand();
                     }
                     mLastX = 0;
@@ -134,6 +135,9 @@ public class ECardFlow extends ViewPager {
         int action = event.getAction();
         switch (action) {
             case MotionEvent.ACTION_DOWN:
+                if (isSwitching) {
+                    return false;
+                }
                 mInterLastX = (int) event.getRawX();
                 mInterLastY = (int) event.getRawY();
                 break;
@@ -159,12 +163,6 @@ public class ECardFlow extends ViewPager {
 
     public void setExpandTime(int time) {
         mExpandTime = time;
-    }
-
-    public void setSwitchSpeed(int rate) {
-        if (mScroller != null) {
-            mScroller.setScrollFactor(rate);
-        }
     }
 
     public void setTouchSlop(int slop) {
@@ -276,7 +274,7 @@ public class ECardFlow extends ViewPager {
 
         @Override
         public void onPageScrollStateChanged(int state) {
-
+            isSwitching = state != ViewPager.SCROLL_STATE_IDLE;
         }
     }
 
@@ -289,7 +287,7 @@ public class ECardFlow extends ViewPager {
         });
     }
 
-    private void initSwitchSpeed(int scrollFactor) {
+    private void initSwitchSpeed(float scrollFactor) {
         try {
             Class<?> viewpager = ViewPager.class;
             Field scroller = viewpager.getDeclaredField("mScroller");
@@ -308,7 +306,7 @@ public class ECardFlow extends ViewPager {
 
     public static class ScrollerCustomDuration extends Scroller {
 
-        private double mScrollFactor = DEFAULT_SWITCH_SPEED;
+        private double mScrollFactor = DEFAULT_SWITCH_TIME / DEFAULT_BASE_SWITCH_TIME;
 
         public ScrollerCustomDuration(Context context, Interpolator interpolator) {
             super(context, interpolator);
