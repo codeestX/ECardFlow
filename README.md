@@ -5,7 +5,10 @@
 ECardFlow, A custom ViewPager for multiple card flow system.designed by [Leo Leung](https://ios.uplabs.com/posts/multiple-card-flow
 )  
 ECardFlow, 一个用于复数卡片滑动与展开效果的ViewPager控件，设计原型出自[Leo Leung](https://ios.uplabs.com/posts/multiple-card-flow
-)
+)  
+
+ECardFlowLayout, A layout provide beautiful background effect for ViewPager.  
+ECardFlowLayout, 一个为ViewPager提供多种联动背景效果的布局
 
 #Preview
 <b>ECardFlow:</b>  
@@ -31,7 +34,7 @@ Step 1. Add the JitPack repository to your build file
 Step 2. Add the dependency
 
 	dependencies {
-	        compile 'com.github.codeestX:ECardFlow:v1.0.1'
+	        compile 'com.github.codeestX:ECardFlow:v1.0.2'
 	}
 	
 Step 3. Just use it as a ViewPager
