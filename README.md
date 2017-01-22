@@ -8,9 +8,16 @@ ECardFlow, 一个用于复数卡片滑动与展开效果的ViewPager控件，设
 )
 
 #Preview
-![](https://github.com/codeestX/ECardFlow/raw/master/preview/GIF.gif)
+<b>ECardFlow:</b>  
 
-#Usage
+![](https://github.com/codeestX/ECardFlow/raw/master/preview/GIF.gif)  
+
+<b>ECardFlowLayout:</b>  
+
+![](https://github.com/codeestX/ECardFlow/raw/master/preview/GIFBlur.gif)
+![](https://github.com/codeestX/ECardFlow/raw/master/preview/GIFMove.gif)
+
+#Usage(ECardFlow)
 
 Step 1. Add the JitPack repository to your build file
 
@@ -46,13 +53,13 @@ Step 3. Just use it as a ViewPager
 Attrs:
 
 	<declare-styleable name="attr">
-        <!-- Page switch time, default 1200ms -->
+        <!-- Page switching time, default 1200ms -->
         <attr name="switchTime" format="integer" />
 
-        <!-- Page expand time, default 700ms -->
+        <!-- Page expanding time, default 700ms -->
         <attr name="expandTime" format="integer" />
 
-        <!-- Page expand mode, click or slide up to expand, default slide_up -->
+        <!-- Page expanding mode, click or slide up to expand, default slide_up -->
         <attr name="expandMode">
             <enum name="slide_up" value="10" />
             <enum name="click" value="11" />
@@ -93,6 +100,71 @@ Java Code:
 	          
 	            }
 	        });
+	        
+#Usage(ECardFlowLayout)
+Step 1. Add the JitPack repository to your build file
+
+	allprojects {
+		repositories {
+			...
+			maven { url "https://jitpack.io" }
+		}
+	}
+   
+Step 2. Add the dependency
+
+	dependencies {
+	        compile 'com.github.codeestX:ECardFlow:v1.0.2'
+	}
+	
+Step 3. Just put a ViewPager in ECardFlowLayout 
+
+	<moe.codeest.ecardflow.ECardFlowLayout
+	    xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:id="@+id/ecardflow_layout"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:clipChildren="false">
+	    <android.support.v4.view.ViewPager
+	        android:id="@+id/viewpager"
+	        android:layout_width="240dp"
+	        android:layout_height="270dp"
+	        android:layout_gravity="center_horizontal|bottom"
+	        android:layout_marginBottom="80dp"/>
+	</moe.codeest.ecardflow.ECardFlowLayout>
+
+Step 4. setAnimMode & setImageProvider
+
+	mVPLayout = (ECardFlowLayout) findViewById(R.id.ecardflow_layout);
+	mVPLayout.setAnimMode(new BlurAnimMode());
+	mVPLayout.setImageProvider(new DrawableImageProvider(this, res, width, height);
+
+* Set AnimMode before Set ImageProvider
+* See DemoProject for more details
+* Use `mVPLayout.onDestroy();` to release source
+
+Attrs:  
+
+	<declare-styleable name="attr_layout">
+        <!-- The duration of Page switching animation, default 300ms -->
+        <attr name="switchAnimTime" format="integer" />
+    </declare-styleable>
+    
+    
+| AnimMode      | Des           |
+|:-------------:|:-------------:|
+| DefaultAnimMode  | No Effect   |
+| BlurAnimMode | Blur Effect     |
+| MoveAnimMode | Parallax Effect |
+You can custom AnimMode with class which implements `AnimMode`
+
+| ImageProvider      | Des           |
+|:-------------:|:-------------:|
+| DrawableImageProvider  | Prividing resId(R.drawable/mipmap.xx) as image resource |
+| PathImageProvider | Prividing file path as image resource     |
+| FileImageProvider | Prividing `File` as image resource |
+You can custom ImageProvider with class which implements `ImageProvider`
+	
 
 #License
 
