@@ -1,4 +1,4 @@
-package moe.codeest.ecardflowdemo;
+package moe.codeest.ecardflowdemo.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -15,6 +15,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import jp.wasabeef.recyclerview.animators.FadeInUpAnimator;
+import moe.codeest.ecardflowdemo.adapter.ItemAdapter;
+import moe.codeest.ecardflowdemo.R;
 
 /**
  * Created by codeest on 2017/1/9.

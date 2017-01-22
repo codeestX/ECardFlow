@@ -1,31 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/activity_main"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_horizontal"
-    android:background="@drawable/shape_bg"
-    android:fitsSystemWindows="true"
-    android:clipChildren="false">
+    android:gravity="center_horizontal">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_card"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:layout_marginTop="40dp"
+        android:text="ECardFlow"/>
 
-    </android.support.v7.widget.Toolbar>
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:layout_marginTop="20dp"
+        android:text="ECardFlowLayout"/>
 
-    <moe.codeest.ecardflow.ECardFlow
-        android:id="@+id/ecardflow"
-        android:layout_width="280dp"
-        android:layout_height="match_parent"
-        app:expandMode="slide_up"
-        app:expandTime="700"
-        app:switchTime="1200"
-        app:preloadPageNum="3"
-        app:maxRotateY="5">
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_layout_blur"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:layout_marginTop="20dp"
+        android:text="ECardFlowLayout(Blur)"/>
 
-    </moe.codeest.ecardflow.ECardFlow>
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_layout_move"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:layout_marginTop="20dp"
+        android:text="ECardFlowLayout(Move)"/>
 </LinearLayout>

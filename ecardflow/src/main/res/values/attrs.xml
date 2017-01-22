@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="attr">
-        <!-- Page switch time, default 1200ms -->
+        <!-- Page switching time, default 1200ms -->
         <attr name="switchTime" format="integer" />
 
-        <!-- Page expand time, default 700ms -->
+        <!-- Page expanding time, default 700ms -->
         <attr name="expandTime" format="integer" />
 
-        <!-- Page expand mode, click or slide up to expand, default slide_up -->
+        <!-- Page expanding mode, click or slide up to expand, default slide_up -->
         <attr name="expandMode">
             <enum name="slide_up" value="10" />
             <enum name="click" value="11" />
@@ -21,5 +21,10 @@
 
         <!-- The maximum angle of rotation, default 5 -->
         <attr name="maxRotateY" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="attr_layout">
+        <!-- The duration of Page switching animation, default 300ms -->
+        <attr name="switchAnimTime" format="integer" />
     </declare-styleable>
 </resources>

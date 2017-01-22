@@ -1,4 +1,4 @@
-package moe.codeest.ecardflowdemo;
+package moe.codeest.ecardflowdemo.activity;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -9,8 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import moe.codeest.ecardflow.ECardFlow;
+import moe.codeest.ecardflowdemo.adapter.PagerAdapter;
+import moe.codeest.ecardflowdemo.fragment.PagerFragment;
+import moe.codeest.ecardflowdemo.R;
 
-public class MainActivity extends AppCompatActivity implements PagerFragment.OnPageListener{
+/**
+ * Created by codeest on 2017/1/21.
+ */
+
+public class CardFlowActivity extends AppCompatActivity implements PagerFragment.OnPageListener {
 
     private List<PagerFragment> mList = new ArrayList<>();
     private PagerAdapter mAdapter;
@@ -20,7 +27,7 @@ public class MainActivity extends AppCompatActivity implements PagerFragment.OnP
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_cardflow);
 
         init();
     }

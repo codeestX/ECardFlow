@@ -8,15 +8,15 @@ import android.content.res.TypedArray;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.WindowManager;
 import android.view.animation.Interpolator;
 import android.widget.Scroller;
 
 import java.lang.reflect.Field;
+
+import moe.codeest.ecardflow.util.DimenUtils;
 
 /**
  * Created by codeest on 2017/1/8.
@@ -81,8 +81,8 @@ public class ECardFlow extends ViewPager {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        if (widthSize >= getScreenWidth()) {
-            widthSize = getScreenWidth() * 4 / 5;
+        if (widthSize >= DimenUtils.getScreenWidth(getContext().getApplicationContext())) {
+            widthSize = DimenUtils.getScreenWidth(getContext().getApplicationContext()) * 4 / 5;
             widthMeasureSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -237,8 +237,8 @@ public class ECardFlow extends ViewPager {
     }
 
     private int getExtraPaddingBottom() {
-        if (getHeight() * mRate > getScreenHeight()) {
-            return (int) ((getHeight() * mRate - getScreenHeight()) / mRate);
+        if (getHeight() * mRate > DimenUtils.getScreenHeight(getContext().getApplicationContext())) {
+            return (int) ((getHeight() * mRate - DimenUtils.getScreenHeight(getContext().getApplicationContext())) / mRate);
         } else {
             return  0;
         }
@@ -282,7 +282,7 @@ public class ECardFlow extends ViewPager {
         post(new Runnable() {
             @Override
             public void run() {
-                mRate = getScreenWidth() * 1.00f / getWidth();
+                mRate = DimenUtils.getScreenWidth(getContext().getApplicationContext()) * 1.00f / getWidth();
             }
         });
     }
@@ -320,20 +320,6 @@ public class ECardFlow extends ViewPager {
         public void setScrollFactor(double mScrollFactor) {
             this.mScrollFactor = mScrollFactor;
         }
-    }
-
-    private int getScreenWidth() {
-        WindowManager wm = (WindowManager) getContext().getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(outMetrics);
-        return outMetrics.widthPixels;
-    }
-
-    private int getScreenHeight() {
-        WindowManager wm = (WindowManager) getContext().getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(outMetrics);
-        return outMetrics.heightPixels;
     }
 
     public interface OnExpandStateListener {

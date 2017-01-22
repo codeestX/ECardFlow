@@ -1,4 +1,4 @@
-package moe.codeest.ecardflowdemo;
+package moe.codeest.ecardflowdemo.adapter;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -6,15 +6,17 @@ import android.support.v4.app.FragmentPagerAdapter;
 
 import java.util.List;
 
+import moe.codeest.ecardflowdemo.fragment.ImageFragment;
+
 /**
- * Created by codeest on 2017/1/8.
+ * Created by codeest on 2017/1/17.
  */
 
-public class PagerAdapter extends FragmentPagerAdapter{
+public class ImageAdapter extends FragmentPagerAdapter{
 
-    private List<PagerFragment> mList;
+    private List<ImageFragment> mList;
 
-    public PagerAdapter(FragmentManager fm, List<PagerFragment> mList) {
+    public ImageAdapter(FragmentManager fm, List<ImageFragment> mList) {
         super(fm);
         this.mList = mList;
     }

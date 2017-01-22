@@ -1,4 +1,4 @@
-package moe.codeest.ecardflowdemo;
+package moe.codeest.ecardflowdemo.adapter;
 
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
@@ -6,7 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import static moe.codeest.ecardflowdemo.PagerFragment.dp2px;
+import moe.codeest.ecardflowdemo.R;
+
+import static moe.codeest.ecardflowdemo.fragment.PagerFragment.dp2px;
 
 /**
  * Created by codeest on 2017/1/13.
