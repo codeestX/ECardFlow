@@ -28,7 +28,6 @@ public class CardFlowActivity extends AppCompatActivity implements PagerFragment
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cardflow);
-
         init();
     }
 

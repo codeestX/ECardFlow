@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Message;
 import android.renderscript.RSRuntimeException;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
@@ -32,6 +33,7 @@ import moe.codeest.ecardflow.util.RSBlur;
 public class ECardFlowLayout extends FrameLayout{
 
     private static final int SWITCH_ANIM_TIME = 300;
+    private static final int MSG_JUDGE_RESET = 100;
 
     private Context mContext;
     private ExecutorService mThreadPool;
@@ -124,11 +126,18 @@ public class ECardFlowLayout extends FrameLayout{
     }
 
     private void init() {
-
         mThreadPool = Executors.newCachedThreadPool();
-        mHandler = new Handler();
         mNotifyRunnable = new NotifyRunnable();
-
+        mHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                if (msg.arg1 == MSG_JUDGE_RESET) {
+                    judgeReset();
+                    return true;
+                }
+                return false;
+            }
+        });
         mBlurImage = new ImageView(mContext);
         initImageView(mBlurImage);
         mBgImage = new ImageView(mContext);
@@ -146,26 +155,24 @@ public class ECardFlowLayout extends FrameLayout{
         recycleBitmap(lastBp);
         lastBp = curBp;
         curBp = nextBp;
+        if (mBlurImage != null) {
+            recycleBitmap(lastBlurBp);
+            lastBlurBp = curBlurBp;
+            curBlurBp = nextBlurBp;
+        }
         if (mProvider != null) {
             mThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
                     nextBp = mProvider.onProvider(position + 1);
+                    if (mBlurImage != null) {
+                        nextBlurBp = blurBitmap(mProvider.onProvider(position + 1));
+                    }
+                    sendMsg();
                 }
             });
         } else {
             throw new RuntimeException("setImageProvider is necessary");
-        }
-        if (mBlurImage != null) {
-            recycleBitmap(lastBlurBp);
-            lastBlurBp = curBlurBp;
-            curBlurBp = nextBlurBp;
-            mThreadPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    nextBlurBp = blurBitmap(mProvider.onProvider(position + 1));
-                }
-            });
         }
     }
 
@@ -174,27 +181,35 @@ public class ECardFlowLayout extends FrameLayout{
         recycleBitmap(nextBp);
         nextBp = curBp;
         curBp = lastBp;
+        if (mBlurImage != null) {
+            recycleBitmap(nextBlurBp);
+            nextBlurBp = curBlurBp;
+            curBlurBp = lastBlurBp;
+        }
         if (mProvider != null) {
             mThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
                     lastBp = mProvider.onProvider(position - 1);
+                    if (mBlurImage != null) {
+                        lastBlurBp = blurBitmap(mProvider.onProvider(position - 1));
+                    }
+                    sendMsg();
                 }
             });
         } else {
             throw new RuntimeException("setImageProvider is necessary");
         }
-        if (mBlurImage != null) {
-            recycleBitmap(nextBlurBp);
-            nextBlurBp = curBlurBp;
-            curBlurBp = lastBlurBp;
-            mThreadPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    lastBlurBp = blurBitmap(mProvider.onProvider(position - 1));
-                }
-            });
-        }
+    }
+
+    private void startTrans(int targetPosition, ImageView targetImage, Bitmap startBp, Bitmap endBp) {
+        if (endBp == null)
+            endBp = mProvider.onProvider(targetPosition);
+        TransitionDrawable td = new TransitionDrawable(new Drawable[] {new BitmapDrawable(mContext.getResources(), startBp),
+                new BitmapDrawable(mContext.getResources(), endBp)});
+        targetImage.setImageDrawable(td);
+        td.setCrossFadeEnabled(true);
+        td.startTransition(mSwitchAnimTime);
     }
 
     private void switchBgToNext(final int targetPosition) {
@@ -202,17 +217,9 @@ public class ECardFlowLayout extends FrameLayout{
             return;
         }
         isSwitching = true;
-        TransitionDrawable td = new TransitionDrawable(new Drawable[] {new BitmapDrawable(mContext.getResources(), curBp),
-                new BitmapDrawable(mContext.getResources(), nextBp)});
-        mBgImage.setImageDrawable(td);
-        td.setCrossFadeEnabled(true);
-        td.startTransition(mSwitchAnimTime);
+        startTrans(targetPosition + 1, mBgImage, curBp, nextBp);
         if (mBlurImage != null) {
-            TransitionDrawable tdb = new TransitionDrawable(new Drawable[] {new BitmapDrawable(mContext.getResources(), curBlurBp),
-                    new BitmapDrawable(mContext.getResources(), nextBlurBp)});
-            mBlurImage.setImageDrawable(tdb);
-            tdb.setCrossFadeEnabled(true);
-            tdb.startTransition(mSwitchAnimTime);
+            startTrans(targetPosition + 1, mBlurImage, curBlurBp, nextBlurBp);
         }
         mNotifyRunnable.setTarget(targetPosition, true);
         mBgImage.postDelayed(mNotifyRunnable, mSwitchAnimTime);
@@ -223,20 +230,58 @@ public class ECardFlowLayout extends FrameLayout{
             return;
         }
         isSwitching = true;
+        startTrans(targetPosition - 1, mBgImage, curBp, lastBp);
+        if (mBlurImage != null) {
+            startTrans(targetPosition - 1, mBlurImage, curBlurBp, lastBlurBp);
+        }
+        mNotifyRunnable.setTarget(targetPosition, false);
+        mBgImage.postDelayed(mNotifyRunnable, mSwitchAnimTime);
+    }
+
+    private void jumpBgToTarget(final int targetPosition) {
+        mCurPosition = targetPosition;
+        if (isSwitching) {
+            return;
+        }
+        isSwitching = true;
+        final Bitmap newBitmap = mProvider.onProvider(targetPosition);
         TransitionDrawable td = new TransitionDrawable(new Drawable[] {new BitmapDrawable(mContext.getResources(), curBp),
-                new BitmapDrawable(mContext.getResources(), lastBp)});
+                new BitmapDrawable(mContext.getResources(), newBitmap)});
         mBgImage.setImageDrawable(td);
         td.setCrossFadeEnabled(true);
         td.startTransition(mSwitchAnimTime);
         if (mBlurImage != null) {
             TransitionDrawable tdb = new TransitionDrawable(new Drawable[] {new BitmapDrawable(mContext.getResources(), curBlurBp),
-                    new BitmapDrawable(mContext.getResources(), lastBlurBp)});
+                    new BitmapDrawable(mContext.getResources(), blurBitmap(mProvider.onProvider(targetPosition)))});
             mBlurImage.setImageDrawable(tdb);
             tdb.setCrossFadeEnabled(true);
             tdb.startTransition(mSwitchAnimTime);
         }
-        mNotifyRunnable.setTarget(targetPosition, false);
-        mBgImage.postDelayed(mNotifyRunnable, mSwitchAnimTime);
+        mBgImage.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mThreadPool.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        recycleBitmap(nextBp);
+                        recycleBitmap(lastBp);
+                        recycleBitmap(curBp);
+                        curBp = newBitmap;
+                        nextBp = mProvider.onProvider(targetPosition + 1);
+                        lastBp = mProvider.onProvider(targetPosition - 1);
+                        if (mBlurImage != null) {
+                            recycleBitmap(nextBlurBp);
+                            recycleBitmap(lastBlurBp);
+                            recycleBitmap(curBlurBp);
+                            curBlurBp = blurBitmap(mProvider.onProvider(targetPosition));
+                            nextBlurBp = blurBitmap(mProvider.onProvider(targetPosition + 1));
+                            lastBlurBp = blurBitmap(mProvider.onProvider(targetPosition - 1));
+                        }
+                        sendMsg();
+                    }
+                });
+            }
+        }, mSwitchAnimTime);
     }
 
     private class NotifyRunnable implements Runnable {
@@ -251,21 +296,30 @@ public class ECardFlowLayout extends FrameLayout{
             } else {
                 updateLastRes(targetPosition);
             }
-            isSwitching = false;
-            judgeReset();
         }
 
-        public void setTarget(int targetPosition, boolean isNext) {
+        void setTarget(int targetPosition, boolean isNext) {
             this.targetPosition = targetPosition;
             this.isNext = isNext;
         }
     }
 
+    private void sendMsg() {
+        Message msg = new Message();
+        msg.arg1 = MSG_JUDGE_RESET;
+        mHandler.sendMessage(msg);
+    }
+
     private void judgeReset() {
-        if (mCurPosition > mLastPosition) {
-            switchBgToLast(mLastPosition);
-        } else if (mCurPosition < mLastPosition) {
-            switchBgToNext(mLastPosition);
+        isSwitching = false;
+        if (Math.abs(mCurPosition - mLastPosition) <= 1) {
+            if (mCurPosition > mLastPosition) {
+                switchBgToLast(mLastPosition);
+            } else if (mCurPosition < mLastPosition) {
+                switchBgToNext(mLastPosition);
+            }
+        } else {
+            jumpBgToTarget(mLastPosition);
         }
     }
 
@@ -322,6 +376,10 @@ public class ECardFlowLayout extends FrameLayout{
     }
 
     public void onDestroy() {
+        mHandler.removeCallbacksAndMessages(null);
+        if (!mThreadPool.isShutdown()) {
+            mThreadPool.shutdown();
+        }
         recycleBitmap(curBp);
         recycleBitmap(lastBp);
         recycleBitmap(nextBp);
@@ -330,6 +388,5 @@ public class ECardFlowLayout extends FrameLayout{
             recycleBitmap(lastBlurBp);
             recycleBitmap(nextBlurBp);
         }
-        mHandler.removeCallbacks(mNotifyRunnable);
     }
 }
