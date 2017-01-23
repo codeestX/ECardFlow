@@ -34,7 +34,7 @@ Step 1. Add the JitPack repository to your build file
 Step 2. Add the dependency
 
 	dependencies {
-	        compile 'com.github.codeestX:ECardFlow:v1.0.2'
+	        compile 'com.github.codeestX:ECardFlow:v1.0.3'
 	}
 	
 Step 3. Just use it as a ViewPager
@@ -117,7 +117,7 @@ Step 1. Add the JitPack repository to your build file
 Step 2. Add the dependency
 
 	dependencies {
-	        compile 'com.github.codeestX:ECardFlow:v1.0.2'
+	        compile 'com.github.codeestX:ECardFlow:v1.0.3'
 	}
 	
 Step 3. Just put a ViewPager in ECardFlowLayout 
@@ -167,7 +167,26 @@ You can custom AnimMode with class which implements `AnimMode`
 | PathImageProvider | Prividing file path as image resource     |
 | FileImageProvider | Prividing `File` as image resource |
 You can custom ImageProvider with class which implements `ImageProvider`
-	
+  
+If you choose `BlurAnimMode`, you can enable `RenderScript` for a high performance.
+> Open the build.gradle file in the app folder of your application module.  
+> Add the following RenderScript settings to the file:  
+> 
+> 		android {
+>	    	compileSdkVersion 23
+>	    	buildToolsVersion "23.0.3"
+>	
+>	    defaultConfig {
+>	        minSdkVersion 9
+>	        targetSdkVersion 19
+>	
+>			//Enable RenderScript
+>	        renderscriptTargetApi 23
+>	        renderscriptSupportModeEnabled true
+>	    	}
+>		}
+>
+
 
 #License
 
