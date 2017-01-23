@@ -187,6 +187,7 @@ If you choose `BlurAnimMode`, you can enable `RenderScript` for a high performan
 >		}
 >
 
+#[Download Demo APK](https://fir.im/yl3e)
 
 #License
 
