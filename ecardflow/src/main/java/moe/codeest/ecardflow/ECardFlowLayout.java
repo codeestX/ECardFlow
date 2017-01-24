@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -33,11 +34,11 @@ import moe.codeest.ecardflow.util.RSBlur;
 public class ECardFlowLayout extends FrameLayout{
 
     private static final int SWITCH_ANIM_TIME = 300;
-    private static final int MSG_JUDGE_RESET = 100;
+    private static final int MSG_JUDGE_RESET = 0x1;
 
     private Context mContext;
     private ExecutorService mThreadPool;
-    private Handler mHandler;
+    private MyHandler mHandler;
     private NotifyRunnable mNotifyRunnable;
 
     private ImageView mBgImage;
@@ -77,6 +78,22 @@ public class ECardFlowLayout extends FrameLayout{
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         initViewPager();
+    }
+
+    private void init() {
+        mThreadPool = Executors.newCachedThreadPool();
+        mNotifyRunnable = new NotifyRunnable();
+        mHandler = new MyHandler(this);
+        mBlurImage = new ImageView(mContext);
+        initImageView(mBlurImage);
+        mBgImage = new ImageView(mContext);
+        initImageView(mBgImage);
+    }
+
+    private void initImageView(ImageView image) {
+        image.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        addView(image);
     }
 
     private void initViewPager() {
@@ -123,31 +140,6 @@ public class ECardFlowLayout extends FrameLayout{
 
             }
         });
-    }
-
-    private void init() {
-        mThreadPool = Executors.newCachedThreadPool();
-        mNotifyRunnable = new NotifyRunnable();
-        mHandler = new Handler(new Handler.Callback() {
-            @Override
-            public boolean handleMessage(Message msg) {
-                if (msg.arg1 == MSG_JUDGE_RESET) {
-                    judgeReset();
-                    return true;
-                }
-                return false;
-            }
-        });
-        mBlurImage = new ImageView(mContext);
-        initImageView(mBlurImage);
-        mBgImage = new ImageView(mContext);
-        initImageView(mBgImage);
-    }
-
-    private void initImageView(ImageView image) {
-        image.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        image.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        addView(image);
     }
 
     private void updateNextRes(final int position) {
@@ -284,30 +276,12 @@ public class ECardFlowLayout extends FrameLayout{
         }, mSwitchAnimTime);
     }
 
-    private class NotifyRunnable implements Runnable {
-
-        private int targetPosition;
-        private boolean isNext;
-
-        @Override
-        public void run() {
-            if (isNext) {
-                updateNextRes(targetPosition);
-            } else {
-                updateLastRes(targetPosition);
-            }
-        }
-
-        void setTarget(int targetPosition, boolean isNext) {
-            this.targetPosition = targetPosition;
-            this.isNext = isNext;
-        }
-    }
-
     private void sendMsg() {
         Message msg = new Message();
-        msg.arg1 = MSG_JUDGE_RESET;
-        mHandler.sendMessage(msg);
+        msg.what = MSG_JUDGE_RESET;
+        if (mHandler != null) {
+            mHandler.sendMessage(msg);
+        }
     }
 
     private void judgeReset() {
@@ -380,6 +354,7 @@ public class ECardFlowLayout extends FrameLayout{
         if (!mThreadPool.isShutdown()) {
             mThreadPool.shutdown();
         }
+        mHandler = null;
         recycleBitmap(curBp);
         recycleBitmap(lastBp);
         recycleBitmap(nextBp);
@@ -387,6 +362,45 @@ public class ECardFlowLayout extends FrameLayout{
             recycleBitmap(curBlurBp);
             recycleBitmap(lastBlurBp);
             recycleBitmap(nextBlurBp);
+        }
+    }
+
+    private class NotifyRunnable implements Runnable {
+
+        private int targetPosition;
+        private boolean isNext;
+
+        @Override
+        public void run() {
+            if (isNext) {
+                updateNextRes(targetPosition);
+            } else {
+                updateLastRes(targetPosition);
+            }
+        }
+
+        void setTarget(int targetPosition, boolean isNext) {
+            this.targetPosition = targetPosition;
+            this.isNext = isNext;
+        }
+    }
+
+    private static class MyHandler extends Handler {
+
+        WeakReference<ECardFlowLayout> mLayout;
+
+        MyHandler(ECardFlowLayout layout) {
+            mLayout = new WeakReference<>(layout);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            ECardFlowLayout layout = mLayout.get();
+            switch (msg.what) {
+                case MSG_JUDGE_RESET:
+                    layout.judgeReset();
+                    break;
+            }
         }
     }
 }
