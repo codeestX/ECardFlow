@@ -70,4 +70,13 @@ public class CardFlowActivity extends AppCompatActivity implements PagerFragment
     public void onShrink() {
         mEcardflow.shrink();
     }
+
+    @Override
+    public void onBackPressed() {
+        if (mEcardflow.isExpanding()) {
+            mEcardflow.shrink();
+        } else {
+            super.onBackPressed();
+        }
+    }
 }

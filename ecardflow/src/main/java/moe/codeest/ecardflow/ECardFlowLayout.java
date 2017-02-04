@@ -11,8 +11,10 @@ import android.os.Handler;
 import android.os.Message;
 import android.renderscript.RSRuntimeException;
 import android.support.annotation.Nullable;
+import android.support.v4.util.LruCache;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -24,6 +26,7 @@ import java.util.concurrent.Executors;
 import moe.codeest.ecardflow.mode.AnimMode;
 import moe.codeest.ecardflow.mode.BlurAnimMode;
 import moe.codeest.ecardflow.provider.ImageProvider;
+import moe.codeest.ecardflow.support.RecyclingBitmapDrawable;
 import moe.codeest.ecardflow.util.FastBlur;
 import moe.codeest.ecardflow.util.RSBlur;
 
@@ -33,11 +36,12 @@ import moe.codeest.ecardflow.util.RSBlur;
 
 public class ECardFlowLayout extends FrameLayout{
 
-    private static final int SWITCH_ANIM_TIME = 300;
+    private static final int SWITCH_ANIM_TIME = 300;    //300 ms
     private static final int MSG_JUDGE_RESET = 0x1;
 
     private Context mContext;
     private ExecutorService mThreadPool;
+    private LruCache<String, RecyclingBitmapDrawable> mLruCache;
     private MyHandler mHandler;
     private NotifyRunnable mNotifyRunnable;
 
@@ -48,11 +52,12 @@ public class ECardFlowLayout extends FrameLayout{
     private ImageProvider mProvider;
     private AnimMode mAnimMode;
 
-    private Bitmap curBp, lastBp, nextBp;
+    private RecyclingBitmapDrawable curBp, lastBp, nextBp;
     private Bitmap curBlurBp, lastBlurBp, nextBlurBp;
 
     private int mCurDirection = AnimMode.D_RIGHT;
     private int mSwitchAnimTime = SWITCH_ANIM_TIME;
+    private int mMinCacheSize;
     private float mLastOffset;
     private int mRadius;
     private int mCurPosition;
@@ -84,6 +89,7 @@ public class ECardFlowLayout extends FrameLayout{
         mThreadPool = Executors.newCachedThreadPool();
         mNotifyRunnable = new NotifyRunnable();
         mHandler = new MyHandler(this);
+        initCache();
         mBlurImage = new ImageView(mContext);
         initImageView(mBlurImage);
         mBgImage = new ImageView(mContext);
@@ -142,9 +148,38 @@ public class ECardFlowLayout extends FrameLayout{
         });
     }
 
+    private void initCache() {
+        int maxMemory = (int) Runtime.getRuntime().maxMemory() / 1024;
+        int cacheSize = maxMemory / 5;
+        mMinCacheSize = maxMemory / 8;
+        mLruCache = new LruCache<String, RecyclingBitmapDrawable>(cacheSize) {
+            @Override
+            protected int sizeOf(String key, RecyclingBitmapDrawable value) {
+                return value.getBitmap().getByteCount() / 1024;
+            }
+
+            @Override
+            protected void entryRemoved(boolean evicted, String key, RecyclingBitmapDrawable oldValue, RecyclingBitmapDrawable newValue) {
+                super.entryRemoved(evicted, key, oldValue, newValue);
+                if (evicted && oldValue != null) {
+                    oldValue.setIsCached(false);
+                }
+            }
+
+            @Override
+            protected RecyclingBitmapDrawable create(String key) {
+                RecyclingBitmapDrawable bitmap = new RecyclingBitmapDrawable(getResources(), mProvider.onProvider(Integer.valueOf(key)));
+                if (bitmap.getBitmap() == null)
+                    return null;
+                bitmap.setIsCached(true);
+                return bitmap;
+            }
+        };
+    }
+
     private void updateNextRes(final int position) {
         mCurPosition = position;
-        recycleBitmap(lastBp);
+        detachBitmap(lastBp);
         lastBp = curBp;
         curBp = nextBp;
         if (mBlurImage != null) {
@@ -156,9 +191,9 @@ public class ECardFlowLayout extends FrameLayout{
             mThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    nextBp = mProvider.onProvider(position + 1);
+                    nextBp = loadBitmap(position + 1);
                     if (mBlurImage != null) {
-                        nextBlurBp = blurBitmap(mProvider.onProvider(position + 1));
+                        nextBlurBp = blurBitmap(position + 1);
                     }
                     sendMsg();
                 }
@@ -170,7 +205,7 @@ public class ECardFlowLayout extends FrameLayout{
 
     private void updateLastRes(final int position) {
         mCurPosition = position;
-        recycleBitmap(nextBp);
+        detachBitmap(nextBp);
         nextBp = curBp;
         curBp = lastBp;
         if (mBlurImage != null) {
@@ -182,9 +217,9 @@ public class ECardFlowLayout extends FrameLayout{
             mThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    lastBp = mProvider.onProvider(position - 1);
+                    lastBp = loadBitmap(position - 1);
                     if (mBlurImage != null) {
-                        lastBlurBp = blurBitmap(mProvider.onProvider(position - 1));
+                        lastBlurBp = blurBitmap(position - 1);
                     }
                     sendMsg();
                 }
@@ -194,11 +229,10 @@ public class ECardFlowLayout extends FrameLayout{
         }
     }
 
-    private void startTrans(int targetPosition, ImageView targetImage, Bitmap startBp, Bitmap endBp) {
+    private void startTrans(int targetPosition, ImageView targetImage, RecyclingBitmapDrawable startBp, RecyclingBitmapDrawable endBp) {
         if (endBp == null)
-            endBp = mProvider.onProvider(targetPosition);
-        TransitionDrawable td = new TransitionDrawable(new Drawable[] {new BitmapDrawable(mContext.getResources(), startBp),
-                new BitmapDrawable(mContext.getResources(), endBp)});
+            endBp = loadBitmap(targetPosition);
+        TransitionDrawable td = new TransitionDrawable(new Drawable[] {startBp, endBp});
         targetImage.setImageDrawable(td);
         td.setCrossFadeEnabled(true);
         td.startTransition(mSwitchAnimTime);
@@ -211,7 +245,7 @@ public class ECardFlowLayout extends FrameLayout{
         isSwitching = true;
         startTrans(targetPosition + 1, mBgImage, curBp, nextBp);
         if (mBlurImage != null) {
-            startTrans(targetPosition + 1, mBlurImage, curBlurBp, nextBlurBp);
+            startTrans(targetPosition + 1, mBlurImage, new RecyclingBitmapDrawable(getResources(), curBlurBp), new RecyclingBitmapDrawable(getResources(), nextBlurBp));
         }
         mNotifyRunnable.setTarget(targetPosition, true);
         mBgImage.postDelayed(mNotifyRunnable, mSwitchAnimTime);
@@ -224,7 +258,7 @@ public class ECardFlowLayout extends FrameLayout{
         isSwitching = true;
         startTrans(targetPosition - 1, mBgImage, curBp, lastBp);
         if (mBlurImage != null) {
-            startTrans(targetPosition - 1, mBlurImage, curBlurBp, lastBlurBp);
+            startTrans(targetPosition - 1, mBlurImage, new RecyclingBitmapDrawable(getResources(), curBlurBp), new RecyclingBitmapDrawable(getResources(), lastBlurBp));
         }
         mNotifyRunnable.setTarget(targetPosition, false);
         mBgImage.postDelayed(mNotifyRunnable, mSwitchAnimTime);
@@ -236,15 +270,14 @@ public class ECardFlowLayout extends FrameLayout{
             return;
         }
         isSwitching = true;
-        final Bitmap newBitmap = mProvider.onProvider(targetPosition);
-        TransitionDrawable td = new TransitionDrawable(new Drawable[] {new BitmapDrawable(mContext.getResources(), curBp),
-                new BitmapDrawable(mContext.getResources(), newBitmap)});
+        final RecyclingBitmapDrawable newBitmap = loadBitmap(targetPosition);
+        TransitionDrawable td = new TransitionDrawable(new Drawable[] {curBp, newBitmap});
         mBgImage.setImageDrawable(td);
         td.setCrossFadeEnabled(true);
         td.startTransition(mSwitchAnimTime);
         if (mBlurImage != null) {
             TransitionDrawable tdb = new TransitionDrawable(new Drawable[] {new BitmapDrawable(mContext.getResources(), curBlurBp),
-                    new BitmapDrawable(mContext.getResources(), blurBitmap(mProvider.onProvider(targetPosition)))});
+                    new BitmapDrawable(mContext.getResources(), blurBitmap(targetPosition))});
             mBlurImage.setImageDrawable(tdb);
             tdb.setCrossFadeEnabled(true);
             tdb.startTransition(mSwitchAnimTime);
@@ -255,19 +288,19 @@ public class ECardFlowLayout extends FrameLayout{
                 mThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
-                        recycleBitmap(nextBp);
-                        recycleBitmap(lastBp);
-                        recycleBitmap(curBp);
+                        detachBitmap(nextBp);
+                        detachBitmap(lastBp);
+                        detachBitmap(curBp);
                         curBp = newBitmap;
-                        nextBp = mProvider.onProvider(targetPosition + 1);
-                        lastBp = mProvider.onProvider(targetPosition - 1);
+                        nextBp = loadBitmap(targetPosition + 1);
+                        lastBp = loadBitmap(targetPosition - 1);
                         if (mBlurImage != null) {
                             recycleBitmap(nextBlurBp);
                             recycleBitmap(lastBlurBp);
                             recycleBitmap(curBlurBp);
-                            curBlurBp = blurBitmap(mProvider.onProvider(targetPosition));
-                            nextBlurBp = blurBitmap(mProvider.onProvider(targetPosition + 1));
-                            lastBlurBp = blurBitmap(mProvider.onProvider(targetPosition - 1));
+                            curBlurBp = blurBitmap(targetPosition);
+                            nextBlurBp = blurBitmap(targetPosition + 1);
+                            lastBlurBp = blurBitmap(targetPosition - 1);
                         }
                         sendMsg();
                     }
@@ -298,21 +331,30 @@ public class ECardFlowLayout extends FrameLayout{
     }
 
     @Nullable
-    private Bitmap blurBitmap(Bitmap bitmap) {
-        if (bitmap == null) {
+    private Bitmap blurBitmap(int targetPosition) {
+        RecyclingBitmapDrawable bitmapDrawable = mLruCache.get(String.valueOf(targetPosition));
+        if (bitmapDrawable == null || bitmapDrawable.getBitmap() == null) {
             return null;
         }
-        Bitmap blurBitmap;
+        Bitmap blurBitmap = bitmapDrawable.getBitmap().copy(Bitmap.Config.ARGB_8888, true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             try {
-                blurBitmap = RSBlur.blur(mContext, bitmap, mRadius);
+                blurBitmap = RSBlur.blur(mContext, blurBitmap, mRadius);
             } catch (RSRuntimeException e) {
-                blurBitmap = FastBlur.blur(bitmap, mRadius, true);
+                blurBitmap = FastBlur.blur(blurBitmap, mRadius, true);
             }
         } else {
-            blurBitmap = FastBlur.blur(bitmap, mRadius, true);
+            blurBitmap = FastBlur.blur(blurBitmap, mRadius, true);
         }
         return blurBitmap;
+    }
+
+    private RecyclingBitmapDrawable loadBitmap(int targetPosition) {
+        RecyclingBitmapDrawable bitmap = mLruCache.get(String.valueOf(targetPosition));
+        if (bitmap != null) {
+            bitmap.setIsDisplayed(true);
+        }
+        return bitmap;
     }
 
     private void recycleBitmap(Bitmap bitmap) {
@@ -320,19 +362,25 @@ public class ECardFlowLayout extends FrameLayout{
             bitmap.recycle();
     }
 
+    private void detachBitmap(RecyclingBitmapDrawable bitmap) {
+        if (bitmap != null) {
+            bitmap.setIsDisplayed(false);
+        }
+    }
+
     public void setImageProvider(ImageProvider provider) {
         mProvider = provider;
-        curBp = mProvider.onProvider(0);
-        nextBp = mProvider.onProvider(1);
+        curBp = loadBitmap(0);
+        nextBp = loadBitmap(1);
         if (mAnimMode == null) {
             throw new RuntimeException("You should setAnimMode before setImageProvider");
         }
         if (mBlurImage != null) {
-            curBlurBp = blurBitmap(mProvider.onProvider(0));
-            nextBlurBp = blurBitmap(mProvider.onProvider(1));
-            mBlurImage.setImageBitmap(blurBitmap(curBlurBp));
+            curBlurBp = blurBitmap(0);
+            nextBlurBp = blurBitmap(1);
+            mBlurImage.setImageBitmap(blurBitmap(0));
         }
-        mBgImage.setImageBitmap(curBp);
+        mBgImage.setImageBitmap(curBp.getBitmap());
     }
 
     public void setAnimMode(AnimMode animMode) {
@@ -349,15 +397,24 @@ public class ECardFlowLayout extends FrameLayout{
         mSwitchAnimTime = switchAnimTime;
     }
 
+    public void setCacheSize(int megabytes) {
+        if (megabytes * 1024 >= mMinCacheSize) {
+            mLruCache.resize(megabytes * 1024);
+        } else {
+            Log.w(getClass().getName(), "Size is too small to resize");
+        }
+    }
+
     public void onDestroy() {
         mHandler.removeCallbacksAndMessages(null);
         if (!mThreadPool.isShutdown()) {
             mThreadPool.shutdown();
         }
         mHandler = null;
-        recycleBitmap(curBp);
-        recycleBitmap(lastBp);
-        recycleBitmap(nextBp);
+        detachBitmap(curBp);
+        detachBitmap(lastBp);
+        detachBitmap(nextBp);
+        mLruCache.evictAll();
         if (mBlurImage != null) {
             recycleBitmap(curBlurBp);
             recycleBitmap(lastBlurBp);

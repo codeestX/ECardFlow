@@ -16,6 +16,7 @@ import android.widget.Scroller;
 
 import java.lang.reflect.Field;
 
+import moe.codeest.ecardflow.support.CardFlowTransformer;
 import moe.codeest.ecardflow.util.DimenUtils;
 
 /**
@@ -167,6 +168,10 @@ public class ECardFlow extends ViewPager {
 
     public void setTouchSlop(int slop) {
         mSlop = slop;
+    }
+
+    public boolean isExpanding() {
+        return isExpanding;
     }
 
     public void expand() {
