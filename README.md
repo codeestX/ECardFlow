@@ -88,6 +88,8 @@ Java Code:
 	
 	mEcardflow.shrink();
 	
+	mEcardflow.isExpanding();
+	
 	mEcardflow.setTouchSlop(slop);
 	
 	mEcardflow.setExpandTime(time);
@@ -143,8 +145,8 @@ Step 4. setAnimMode & setImageProvider
 	mVPLayout.setImageProvider(new DrawableImageProvider(this, res, width, height);
 
 * Set AnimMode before Set ImageProvider
-* See DemoProject for more details
 * Use `mVPLayout.onDestroy();` to release source
+* See DemoProject for more details
 
 Attrs:  
 
@@ -153,6 +155,21 @@ Attrs:
         <attr name="switchAnimTime" format="integer" />
     </declare-styleable>
     
+Java Code:
+
+		mVPLayout.setImageProvider(imageProvider);
+		
+		mVPLayout.setAnimMode(animMode);
+		
+		mVPLayout.setSwitchAnimTime(time);
+		
+		//maxSize = Runtime.getRuntime().maxMemory();
+		//default: maxSize / 5
+		//min: maxSize / 8
+		mVPLayout.setCacheSize(megabytes);
+		
+		mVPLayout.onDestroy();
+	
     
 | AnimMode      | Des           |
 |:-------------:|:-------------:|
