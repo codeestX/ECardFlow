@@ -34,7 +34,7 @@ Step 1. Add the JitPack repository to your build file
 Step 2. Add the dependency
 
 	dependencies {
-	        compile 'com.github.codeestX:ECardFlow:v1.0.3'
+	        compile 'com.github.codeestX:ECardFlow:v1.0.5'
 	}
 	
 Step 3. Just use it as a ViewPager
@@ -119,7 +119,7 @@ Step 1. Add the JitPack repository to your build file
 Step 2. Add the dependency
 
 	dependencies {
-	        compile 'com.github.codeestX:ECardFlow:v1.0.4'
+	        compile 'com.github.codeestX:ECardFlow:v1.0.5'
 	}
 	
 Step 3. Just put a ViewPager in ECardFlowLayout 
@@ -176,6 +176,8 @@ Java Code:
 | DefaultAnimMode  | No Effect   |
 | BlurAnimMode | Blur Effect     |
 | MoveAnimMode | Parallax Effect |
+| ScaleAnimMode | Scale Effect |
+| CrossMoveAnimMode | Cross Parallax Effect |
 You can custom AnimMode with class which implements `AnimMode`
 
 | ImageProvider      | Des           |

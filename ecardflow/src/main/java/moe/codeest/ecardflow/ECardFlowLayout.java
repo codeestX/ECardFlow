@@ -109,7 +109,7 @@ public class ECardFlowLayout extends FrameLayout{
             }
         }
         if (mViewPager == null) {
-            throw new RuntimeException("Can't find ViewPager in ECardFlowLayout");
+            throw new IllegalStateException("Can't find ViewPager in ECardFlowLayout");
         }
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -225,7 +225,7 @@ public class ECardFlowLayout extends FrameLayout{
                 }
             });
         } else {
-            throw new RuntimeException("setImageProvider is necessary");
+            throw new IllegalArgumentException("setImageProvider is necessary");
         }
     }
 
@@ -373,7 +373,7 @@ public class ECardFlowLayout extends FrameLayout{
         curBp = loadBitmap(0);
         nextBp = loadBitmap(1);
         if (mAnimMode == null) {
-            throw new RuntimeException("You should setAnimMode before setImageProvider");
+            throw new IllegalStateException("You should setAnimMode before setImageProvider");
         }
         if (mBlurImage != null) {
             curBlurBp = blurBitmap(0);

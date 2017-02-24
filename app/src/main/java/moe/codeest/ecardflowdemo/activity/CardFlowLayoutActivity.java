@@ -9,8 +9,10 @@ import java.util.List;
 
 import moe.codeest.ecardflow.ECardFlowLayout;
 import moe.codeest.ecardflow.mode.BlurAnimMode;
+import moe.codeest.ecardflow.mode.CrossMoveAnimMode;
 import moe.codeest.ecardflow.mode.DefaultAnimMode;
 import moe.codeest.ecardflow.mode.MoveAnimMode;
+import moe.codeest.ecardflow.mode.ScaleAnimMode;
 import moe.codeest.ecardflow.provider.DrawableImageProvider;
 import moe.codeest.ecardflow.util.DimenUtils;
 import moe.codeest.ecardflowdemo.R;
@@ -24,9 +26,12 @@ import moe.codeest.ecardflowdemo.support.ZoomOutPageTransformer;
 
 public class CardFlowLayoutActivity extends AppCompatActivity {
 
-    public static int MODE_DEFAULT = 0;
-    public static int MODE_BLUR = 1;
-    public static int MODE_MOVE = 2;
+    public final static int MODE_DEFAULT = 0;
+    public final static int MODE_BLUR = 1;
+    public final static int MODE_MOVE = 2;
+    public final static int MODE_SCALE = 3;
+    public final static int MODE_CROSS_MOVE = 4;
+    public final static String ANIM_MODE = "mode";
 
     private ECardFlowLayout mVPLayout;
     private ViewPager mViewPager;
@@ -40,7 +45,7 @@ public class CardFlowLayoutActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cardflow_layout);
-        mMode = getIntent().getIntExtra("mode", MODE_DEFAULT);
+        mMode = getIntent().getIntExtra(ANIM_MODE, MODE_DEFAULT);
         init();
     }
 
@@ -57,6 +62,12 @@ public class CardFlowLayoutActivity extends AppCompatActivity {
                 break;
             case 2:
                 mVPLayout.setAnimMode(new MoveAnimMode());
+                break;
+            case 3:
+                mVPLayout.setAnimMode(new ScaleAnimMode());
+                break;
+            case 4:
+                mVPLayout.setAnimMode(new CrossMoveAnimMode());
                 break;
         }
         mVPLayout.setImageProvider(new DrawableImageProvider(this, res, DimenUtils.getScreenWidth(getApplicationContext()), DimenUtils.getScreenHeight(getApplicationContext())));

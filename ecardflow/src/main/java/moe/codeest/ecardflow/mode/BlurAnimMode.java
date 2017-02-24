@@ -15,8 +15,8 @@ public class BlurAnimMode implements AnimMode {
         this.mRadius = DEFAULT_BLUR_RADIUS;
     }
 
-    public BlurAnimMode(int mRadius) {
-        this.mRadius = mRadius;
+    public BlurAnimMode(int radius) {
+        this.mRadius = radius;
     }
 
     @Override
