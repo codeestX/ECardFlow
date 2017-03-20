@@ -1,4 +1,4 @@
-#ECardFlow
+# ECardFlow
 
 [![](https://jitpack.io/v/codeestX/ECardFlow.svg)](https://jitpack.io/#codeestX/ECardFlow)
 
@@ -10,7 +10,7 @@ ECardFlow, 一个用于复数卡片滑动与展开效果的ViewPager控件，设
 ECardFlowLayout, A layout provide beautiful background effect for ViewPager.  
 ECardFlowLayout, 一个为ViewPager提供多种联动背景效果的布局
 
-#Preview
+# Preview
 <b>ECardFlow:</b>  
 
 ![](https://github.com/codeestX/ECardFlow/raw/master/preview/GIF.gif)  
@@ -20,7 +20,7 @@ ECardFlowLayout, 一个为ViewPager提供多种联动背景效果的布局
 ![](https://github.com/codeestX/ECardFlow/raw/master/preview/GIFBlur.gif)
 ![](https://github.com/codeestX/ECardFlow/raw/master/preview/GIFMove.gif)
 
-#Usage(ECardFlow)
+# Usage(ECardFlow)
 
 Step 1. Add the JitPack repository to your build file
 
@@ -106,7 +106,7 @@ Java Code:
 	            }
 	        });
 	        
-#Usage(ECardFlowLayout)
+# Usage(ECardFlowLayout)
 Step 1. Add the JitPack repository to your build file
 
 	allprojects {
@@ -206,8 +206,10 @@ If you choose `BlurAnimMode`, you can enable `RenderScript` for a high performan
 >		}
 >
 
-#[Download Demo APK](https://fir.im/yl3e)
+# [Download Demo APK](https://fir.im/yl3e)
 
-#License
+# License
 
       MIT Copyright (c) 2017 codeestX
+
+
