@@ -178,6 +178,7 @@ Java Code:
 | MoveAnimMode | Parallax Effect |
 | ScaleAnimMode | Scale Effect |
 | CrossMoveAnimMode | Cross Parallax Effect |
+
 You can custom AnimMode with class which implements `AnimMode`
 
 | ImageProvider      | Des           |
@@ -185,6 +186,7 @@ You can custom AnimMode with class which implements `AnimMode`
 | DrawableImageProvider  | Prividing resId(R.drawable/mipmap.xx) as image resource |
 | PathImageProvider | Prividing file path as image resource     |
 | FileImageProvider | Prividing `File` as image resource |
+
 You can custom ImageProvider with class which implements `ImageProvider`
   
 If you choose `BlurAnimMode`, you can enable `RenderScript` for a high performance.
